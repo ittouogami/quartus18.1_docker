@@ -1,14 +1,18 @@
 FROM ubuntu16
 LABEL maintainer "ittou <VYG07066@gmail.com>"
 ENV DEBIAN_FRONTEND noninteractive
-
+ENV ALTERA_VER="18.1"
+ENV QSYS_ROOTDIR="/opt/Intel/intelFPGA_lite/$ALTERA_VER/quartus/sopc_builder/bin"
+ENV PATH=/opt/Intel/intelFPGA_lite/$ALTERA_VER/quartus/bin:/opt/Intel/intelFPGA_lite/$ALTERA_VER/qsys/bin:/opt/Intel/intelFPGA_lite/$ALTERA_VER/quartus/sopc_builder/bin:/opt/Intel/intelFPGA_lite/$ALTERA_VER/modelsim_ase/linux:/opt/Intel/intelFPGA_lite/$ALTERA_VER/hls/bin:$PATH
+ARG URIS=smb://192.168.103.223/Share/Quartus18.1/
 ARG QUARTUS=QuartusLiteSetup-18.1.0.625-linux.run
 ARG MAX10=max10-18.1.0.625.qdz
 ARG MODELSIM=ModelSimSetup-18.1.0.625-linux.run
-
-COPY $QUARTUS /$QUARTUS
-COPY $MAX10 /$MAX10
-COPY $MODELSIM /$MODELSIM
+RUN mkdir /quartus-installer
+RUN \
+  curl -u guest ${URIS}${QUARTUS} -o /quartus-installer/${QUARTUS} && \
+  curl -u guest ${URIS}${MAX10} -o /quartus-installer/${MAX10} && \
+  curl -u guest ${URIS}${MODELSIM} -o /quartus-installer/${MODELSIM}
 
 RUN apt-get update && \
     apt-get -y -qq install apt-utils sudo && \
@@ -22,7 +26,9 @@ RUN apt-get update && \
                            libxext6:amd64 \
                            libpng12-0:amd64 \
                            xterm:amd64 && \
-    chmod 755 /$QUARTUS
+    chmod 755 /quartus-installer/${QUARTUS} && \
+    chmod 755 /quartus-installer/${MODELSIM}
+
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get -y -qq install libc6:i386 \
@@ -32,11 +38,9 @@ RUN dpkg --add-architecture i386 && \
                            libxext6:i386
 
 
-RUN    /$QUARTUS --mode unattended --unattendedmodeui none --installdir /opt/Intel/intelFPGA_lite/18.1 --accept_eula 1 && \
-       /$MODELSIM --mode unattended --unattendedmodeui none --installdir /opt/Intel/intelFPGA_lite/18.1 --accept_eula 1 && \
-    sudo rm -f /$QUARTUS && \
-    sudo rm -f /$MODELSIM && \
-    sudo rm -f /$MAX10
+RUN    /quartus-installer/${QUARTUS} --mode unattended --unattendedmodeui none --installdir /opt/Intel/intelFPGA_lite/18.1 --accept_eula 1 && \
+       /quartus-installer/${MODELSIM} --mode unattended --unattendedmodeui none --installdir /opt/Intel/intelFPGA_lite/18.1 --accept_eula 1 && \
+    sudo rm -rf /quartus-installer/
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
