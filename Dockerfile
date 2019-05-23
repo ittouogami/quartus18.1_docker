@@ -8,16 +8,14 @@ ARG URIS=smb://192.168.103.223/Share/Quartus18.1/
 ARG QUARTUS=QuartusLiteSetup-18.1.0.625-linux.run
 ARG MAX10=max10-18.1.0.625.qdz
 ARG MODELSIM=ModelSimSetup-18.1.0.625-linux.run
-RUN mkdir /quartus-installer
-RUN \
+RUN mkdir /quartus-installer && \
   curl -u guest ${URIS}${QUARTUS} -o /quartus-installer/${QUARTUS} && \
   curl -u guest ${URIS}${MAX10} -o /quartus-installer/${MAX10} && \
-  curl -u guest ${URIS}${MODELSIM} -o /quartus-installer/${MODELSIM}
-
-RUN apt-get update && \
-    apt-get -y -qq install apt-utils sudo && \
-    apt-get -y -qq install locales && locale-gen en_US.UTF-8 && \
-    apt-get -y -qq install software-properties-common \
+  curl -u guest ${URIS}${MODELSIM} -o /quartus-installer/${MODELSIM} && \
+  apt-get update && \
+  apt-get -y -qq install sudo && \
+  apt-get -y -qq install locales && locale-gen en_US.UTF-8 && \
+  apt-get -y -qq install software-properties-common \
                            libglib2.0-0:amd64 \
                            libfreetype6:amd64 \
                            libsm6:amd64 \
@@ -26,21 +24,21 @@ RUN apt-get update && \
                            libxext6:amd64 \
                            libpng12-0:amd64 \
                            xterm:amd64 && \
-    chmod 755 /quartus-installer/${QUARTUS} && \
-    chmod 755 /quartus-installer/${MODELSIM}
-
-RUN dpkg --add-architecture i386 && \
-    apt-get update && \
-    apt-get -y -qq install libc6:i386 \
+  dpkg --add-architecture i386 && \
+  apt-get update && \
+  apt-get -y -qq install libc6:i386 \
                            libncurses5:i386 \
                            libstdc++6:i386 \
                            libxft2:i386 \
-                           libxext6:i386
-
-
-RUN    /quartus-installer/${QUARTUS} --mode unattended --unattendedmodeui none --installdir /opt/Intel/intelFPGA_lite/18.1 --accept_eula 1 && \
-       /quartus-installer/${MODELSIM} --mode unattended --unattendedmodeui none --installdir /opt/Intel/intelFPGA_lite/18.1 --accept_eula 1 && \
-    sudo rm -rf /quartus-installer/
+                           libxext6:i386 && \
+  apt-get autoclean && \
+  apt-get autoremove && \
+  chmod 755 /quartus-installer/${QUARTUS} && \
+  chmod 755 /quartus-installer/${MODELSIM} && \
+  rm -rf /var/lib/apt/lists/* && \
+  /quartus-installer/${QUARTUS} --mode unattended --unattendedmodeui none --installdir /opt/Intel/intelFPGA_lite/18.1 --accept_eula 1 && \
+  /quartus-installer/${MODELSIM} --mode unattended --unattendedmodeui none --installdir /opt/Intel/intelFPGA_lite/18.1 --accept_eula 1 && \
+  sudo rm -rf /quartus-installer/
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
