@@ -12,4 +12,5 @@ docker run -it --rm \
     -v /dev/bus/usb:/dev/bus/usb \
     -v /sys:/sys:ro \
     -w $HOME \
-    quartus18.1 /bin/bash
+    quartus18.1
+#    quartus18.1 /bin/bash
