@@ -1,7 +1,8 @@
 FROM ubuntu16
 LABEL maintainer "ittou <VYG07066@gmail.com>"
 ENV DEBIAN_FRONTEND noninteractive
-ENV ALTERA_VER="18.1"
+ARG ALTERA_VER=18.1
+ARG IP
 ENV INTELFPGA_TOOLDIR="/opt/Intel/intelFPGA_lite/${ALTERA_VER}"
 ENV MODELSIM_DIR="${INTELFPGA_TOOLDIR}/modelsim_ase"
 ENV QUARTUS_ROOTDIR="${INTELFPGA_TOOLDIR}/quartus"
@@ -9,28 +10,26 @@ ENV QSYS_ROOTDIR="${QUARTUS_ROOTDIR}/sopc_builder/bin"
 ENV QUARTUS_ROOTDIR_OVERRIDE=${QUARTUS_ROOTDIR}
 ENV CPLUS_INCLUDE_PATH=/usr/include/c++/4.4.7:/usr/include/c++/4.4.7/x86_64-linux-gnu
 ENV PATH=/opt/Intel/intelFPGA_lite/$ALTERA_VER/quartus/bin:/opt/Intel/intelFPGA_lite/$ALTERA_VER/qsys/bin:/opt/Intel/intelFPGA_lite/$ALTERA_VER/quartus/sopc_builder/bin:/opt/Intel/intelFPGA_lite/$ALTERA_VER/modelsim_ase/linux:/opt/Intel/intelFPGA_lite/$ALTERA_VER/hls/bin:$PATH
-ARG URIS=smb://192.168.103.223/Share/Quartus18.1/
+ARG URIS=smb://${IP}/Share/Quartus${ALTERA_VER}/
 ARG QUARTUS=QuartusLiteSetup-18.1.0.625-linux.run
 ARG MAX10=max10-18.1.0.625.qdz
 ARG MODELSIM=ModelSimSetup-18.1.0.625-linux.run
 RUN mkdir /quartus-installer && \
-  curl -u guest ${URIS}${QUARTUS} -o /quartus-installer/${QUARTUS} && \
-  curl -u guest ${URIS}${MAX10} -o /quartus-installer/${MAX10} && \
-  curl -u guest ${URIS}${MODELSIM} -o /quartus-installer/${MODELSIM} && \
   apt-get update && \
   apt-get -y -qq install sudo && \
   apt-get -y -qq install locales && locale-gen en_US.UTF-8 && \
   apt-get -y -qq install software-properties-common \
-                           libglib2.0-0:amd64 \
-                           libfreetype6:amd64 \
-                           libsm6:amd64 \
-                           libxrender1:amd64 \
-                           libfontconfig1:amd64 \
-                           libxext6:amd64 \
-                           libpng12-0:amd64 \
-                           xterm:amd64 \
+                           libglib2.0-0 \
+                           libfreetype6 \
+                           libsm6 \
+                           libxrender1 \
+                           libfontconfig1 \
+                           libxext6 \
+                           libpng12-0 \
+                           xterm \
                            gcc \
-                           g++ && \
+                           g++ \
+                           smbclient && \
   dpkg --add-architecture i386 && \
   apt-get update && \
   apt-get -y -qq install libc6:i386 \
@@ -48,9 +47,12 @@ RUN mkdir /quartus-installer && \
   update-alternatives --set gcc /usr/bin/gcc-4.4 && \
   apt-get autoclean && \
   apt-get autoremove && \
+  rm -rf /var/lib/apt/lists/* && \
+  smbget -a ${URIS}${QUARTUS} -o /quartus-installer/${QUARTUS} && \
+  smbget -a ${URIS}${MAX10} -o /quartus-installer/${MAX10} && \
+  smbget -a ${URIS}${MODELSIM} -o /quartus-installer/${MODELSIM} && \
   chmod 755 /quartus-installer/${QUARTUS} && \
   chmod 755 /quartus-installer/${MODELSIM} && \
-  rm -rf /var/lib/apt/lists/* && \
   /quartus-installer/${QUARTUS} --mode unattended --unattendedmodeui none --installdir ${INTELFPGA_TOOLDIR} --accept_eula 1 && \
   /quartus-installer/${MODELSIM} --mode unattended --unattendedmodeui none --installdir ${INTELFPGA_TOOLDIR} --accept_eula 1 && \
   sudo rm -rf /quartus-installer/ && \
