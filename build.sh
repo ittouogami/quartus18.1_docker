@@ -7,5 +7,5 @@ docker image build \
     --build-arg IP=${IPADDRESS} \
     --build-arg ALTERA_VER \
     --no-cache \
-    -t xilinx${ALTERA_VER} .
+    -t quartus${ALTERA_VER} .
 
