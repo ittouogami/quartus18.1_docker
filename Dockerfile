@@ -63,5 +63,5 @@ RUN mkdir /quartus-installer && \
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD ["/bin/bash", "-c", "source ${INTELFPGA_TOOLDIR}/hls/init_hls.sh;/bin/bash -l"]
+CMD ["/bin/bash", "-c", "source ${INTELFPGA_TOOLDIR}/hls/init_hls.sh;/bin/bash"]
 
